@@ -10,6 +10,9 @@ export function VideoEditor() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
+  // New state for mention dropdown behavior
+  const [isMentioning, setIsMentioning] = useState(false)
+  const [mentionQuery, setMentionQuery] = useState("")
 
   const fileInputRef = useRef(null)
 
@@ -80,6 +83,43 @@ export function VideoEditor() {
   }
 
   const filteredMediaFiles = activeTab === "all" ? mediaFiles : mediaFiles.filter((media) => media.type === activeTab)
+
+  // New handlers for the prompt textarea
+  const handlePromptChange = (e) => {
+    const value = e.target.value
+    setPrompt(value)
+    const atIndex = value.lastIndexOf("@")
+    if (atIndex >= 0) {
+      setIsMentioning(true)
+      setMentionQuery(value.substring(atIndex + 1))
+    } else {
+      setIsMentioning(false)
+      setMentionQuery("")
+    }
+  }
+
+  const handlePromptKeyDown = (e) => {
+    if (e.key === "Escape" && isMentioning) {
+      setIsMentioning(false)
+      setMentionQuery("")
+    }
+  }
+
+  const handleSelectMention = (filename) => {
+    const atIndex = prompt.lastIndexOf("@")
+    if (atIndex >= 0) {
+      // Replace the "@" and following query with selected filename and add a trailing space.
+      const newPrompt = prompt.substring(0, atIndex) + "@" + filename + " "
+      setPrompt(newPrompt)
+      setIsMentioning(false)
+      setMentionQuery("")
+    }
+  }
+
+  // Filter suggestions based on the current mention query
+  const mentionSuggestions = mediaFiles.filter((media) =>
+    media.file.name.toLowerCase().includes(mentionQuery.toLowerCase())
+  )
 
   return (
     <div className={`video-editor ${isDarkMode ? "dark-mode" : ""}`}>
@@ -180,16 +220,27 @@ export function VideoEditor() {
           )}
 
           {/* Prompt Input */}
-          <div className="prompt-section">
+          <div className="prompt-section" style={{ position: "relative" }}>
             <div className="form-group">
               <label htmlFor="prompt">Editing Prompt</label>
               <textarea
                 id="prompt"
                 placeholder="Describe how you want to edit this video (e.g., 'Remove background noise', 'Add slow motion to the middle section')"
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={handlePromptChange}
+                onKeyDown={handlePromptKeyDown}
                 disabled={!activeMedia || isProcessing}
               />
+              {/* Mention dropdown */}
+              {isMentioning && mentionSuggestions.length > 0 && (
+                <div className="mention-dropdown">
+                  {mentionSuggestions.map((media) => (
+                    <div key={media.id} onClick={() => handleSelectMention(media.file.name)}>
+                      {media.file.name}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <button
               className="button primary"
@@ -255,4 +306,3 @@ export function VideoEditor() {
 }
 
 export default VideoEditor
-
