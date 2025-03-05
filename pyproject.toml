@@ -1,0 +1,13 @@
+# [tool.mypy]
+# strict = false      # when will google fix mypy :/
+
+[tool.ruff]
+# extend-select = ["I"]
+ignore = ["F401"]
+
+# [[tool.mypy.overrides]]
+# module = ["google.genai.*"]
+# follow_untyped_imports = true
+
+[tool.mypy]
+ignore_missing_imports = true
