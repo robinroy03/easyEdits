@@ -15,10 +15,6 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
-SYSTEM_INSTRUCTION = """
-Write ffmpeg code for the queries given. Use the best code possible for the best output.
-"""
-
 # CORS settings to allow frontend to communicate with backend
 app.add_middleware(
     CORSMiddleware,
@@ -32,14 +28,28 @@ UPLOAD_DIR = r"C:\Users\Robin Roy\Desktop\idkhack\files\upload"  # ROBIN
 # UPLOAD_DIR =          # shreesh
 # UPLOAD_DIR =          # swagat
 
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def ffmpeg_runner(ffmpeg_code: str):
     """
-    ffmpeg_code: the command line code for running ffmpeg
+    Runs an FFmpeg command and prints output in real-time.
     """
-    
     print(ffmpeg_code)
+    try:
+        process = subprocess.run(
+            ffmpeg_code, 
+            shell=True, 
+            check=True, 
+            stdout=subprocess.PIPE,  # Capture standard output
+            stderr=subprocess.STDOUT,  # Capture errors in the same stream
+            text=True  # Ensure output is treated as text (not bytes)
+        )
+        
+        print(process.stdout)  # Print FFmpeg output
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"FFmpeg failed with error:\n{e.output}")
+        return False
 
 
 @app.post("/upload")
@@ -57,6 +67,9 @@ async def upload_video(file: UploadFile = File(...)):
         print(e)
         raise ValueError("Normalizing failed")
 
+    os.remove(f"../files/upload/{file.filename}")
+    os.rename(f"../files/upload/normalized_{file.filename}", f"../files/upload/{file.filename}")
+
     return {"filename": file.filename, "message": "File uploaded successfully"}
 
 
@@ -65,7 +78,7 @@ class Query(BaseModel):
     video_version: str  # this is the file name in /edit
 
 @app.post("/query")
-async def user_query(query: Query) -> Tuple[bool, str]:
+async def user_query(query: Query) -> Tuple[bool, int]:
     """
     work on the mentioned video version using the given prompt.
 
@@ -76,6 +89,21 @@ async def user_query(query: Query) -> Tuple[bool, str]:
     Returns the new video version number as a string
     """
 
+    edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
+    # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SHREESH
+    # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SWAGAT
+
+    num_files = len([name for name in os.listdir(edit_dir) if os.path.isfile(os.path.join(edit_dir, name))])
+    print(num_files)
+
+    SYSTEM_INSTRUCTION = f"""
+Write ffmpeg code for the queries given. The files are inside `../files/upload`. Save the file inside `../files/edit` as {num_files+1}.mp4.
+
+example code: ffmpeg -i input1.mp4 -i input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
+
+For some queries, you'll need to work on the latest edit, so you've to work on the current file: ../files/edit/{query.video_version}.mp4. Save the new file as {num_files+1}.mp4
+"""
+
     chat = client.aio.chats.create(
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
@@ -85,5 +113,13 @@ async def user_query(query: Query) -> Tuple[bool, str]:
     )
 
     response = await chat.send_message(query.prompt)
+    print(response)
 
-    return False, response.text
+    try:
+        if response.automatic_function_calling_history[-1].parts[0].function_response.response['result']:
+            return True, num_files+1
+        else:
+            return False, -1
+    except Exception as e:
+        print(e)
+        return False, -1
