@@ -135,7 +135,7 @@ export function VideoEditor() {
       {/* Middle Section - Editor */}
       <div className="editor-main">
         <div className="editor-header">
-          <h1>AI Video Editor</h1>
+          <h1>Something Cooking...</h1>
           <button className="button outline" onClick={toggleDarkMode}>
             {isDarkMode ? "Light Mode" : "Dark Mode"}
           </button>
