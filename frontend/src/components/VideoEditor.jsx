@@ -1,6 +1,7 @@
 import { useState, useRef } from "react"
 import { Upload, Wand2, Play, Volume2, RotateCcw } from "lucide-react"
 import "./VideoEditor.css"
+import axios from "axios"
 
 export function VideoEditor() {
   const [mediaFiles, setMediaFiles] = useState([])
@@ -10,67 +11,94 @@ export function VideoEditor() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [activeTab, setActiveTab] = useState("all")
-  // New state for mention dropdown behavior
   const [isMentioning, setIsMentioning] = useState(false)
   const [mentionQuery, setMentionQuery] = useState("")
 
   const fileInputRef = useRef(null)
 
-  const handleUpload = (event) => {
-    if (!event.target.files?.length) return
-
-    const files = Array.from(event.target.files)
-    const newMediaFiles = files.map((file) => {
-      const id = crypto.randomUUID()
-      const type = file.type.startsWith("video/") ? "video" : "audio"
-      return {
-        id,
-        file,
-        url: URL.createObjectURL(file),
-        type,
+  const handleUpload = async (event) => {
+    if (!event.target.files?.length) return;
+  
+    const files = Array.from(event.target.files);
+  
+    const uploadPromises = files.map(async (file) => {
+      const formData = new FormData();
+      formData.append("file", file);
+  
+      try {
+        const response = await axios.post("http://127.0.0.1:8000/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+  
+        if (response.status === 200) {
+          const id = crypto.randomUUID();
+          const type = file.type.startsWith("video/") ? "video" : "audio";
+  
+          return {
+            id,
+            file,
+            url: URL.createObjectURL(file),
+            type,
+          };
+        }
+      } catch (error) {
+        console.error("Upload failed:", error);
+        return null;
       }
-    })
-
-    setMediaFiles((prev) => [...prev, ...newMediaFiles])
-
-    // Set the first uploaded file as active if none is selected
-    if (!activeMediaId && newMediaFiles.length > 0) {
-      setActiveMediaId(newMediaFiles[0].id)
+    });
+  
+    const uploadedMediaFiles = (await Promise.all(uploadPromises)).filter(Boolean);
+  
+    setMediaFiles((prev) => [...prev, ...uploadedMediaFiles]);
+  
+    if (!activeMediaId && uploadedMediaFiles.length > 0) {
+      setActiveMediaId(uploadedMediaFiles[0].id);
     }
-
-    // Reset file input
+  
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!prompt.trim() || !activeMediaId) return
 
     setIsProcessing(true)
 
-    // Simulate AI processing delay
-    setTimeout(() => {
-      const activeMedia = mediaFiles.find((m) => m.id === activeMediaId)
-      if (!activeMedia) return
+    const activeMedia = mediaFiles.find((m) => m.id === activeMediaId)
+    if (!activeMedia) return
 
-      const newVersion = {
-        id: crypto.randomUUID(),
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/query", {
         prompt,
-        timestamp: new Date(),
-        mediaId: activeMediaId,
-        url: activeMedia.url, // In a real app, this would be the new processed video URL
-      }
+        video_version: activeMedia.file.name,
+      })
 
-      setEditedVersions((prev) => [...prev, newVersion])
-      setPrompt("")
+      if (response.status === 200 && response.data[0]) {
+        const newVersion = {
+          id: crypto.randomUUID(),
+          prompt,
+          timestamp: new Date(),
+          mediaId: activeMediaId,
+          url: `${activeMedia.url}?version=${response.data[1]}`, // Assuming the backend returns the new version number
+        }
+
+        setEditedVersions((prev) => [...prev, newVersion])
+        setPrompt("")
+      } else {
+        console.error("Editing failed:", response.data)
+      }
+    } catch (error) {
+      console.error("Editing failed:", error)
+    } finally {
       setIsProcessing(false)
-    }, 1500)
+    }
   }
 
   const handleVersionSelect = (version) => {
     setActiveMediaId(version.mediaId)
-    // In a real app, you would load the specific version of the edited video
   }
 
   const activeMedia = activeMediaId ? mediaFiles.find((m) => m.id === activeMediaId) : null
@@ -84,7 +112,6 @@ export function VideoEditor() {
 
   const filteredMediaFiles = activeTab === "all" ? mediaFiles : mediaFiles.filter((media) => media.type === activeTab)
 
-  // New handlers for the prompt textarea
   const handlePromptChange = (e) => {
     const value = e.target.value
     setPrompt(value)
@@ -108,7 +135,6 @@ export function VideoEditor() {
   const handleSelectMention = (filename) => {
     const atIndex = prompt.lastIndexOf("@")
     if (atIndex >= 0) {
-      // Replace the "@" and following query with selected filename and add a trailing space.
       const newPrompt = prompt.substring(0, atIndex) + "@" + filename + " "
       setPrompt(newPrompt)
       setIsMentioning(false)
@@ -116,14 +142,12 @@ export function VideoEditor() {
     }
   }
 
-  // Filter suggestions based on the current mention query
   const mentionSuggestions = mediaFiles.filter((media) =>
     media.file.name.toLowerCase().includes(mentionQuery.toLowerCase())
   )
 
   return (
     <div className={`video-editor ${isDarkMode ? "dark-mode" : ""}`}>
-      {/* Left Sidebar - Uploaded Media */}
       <div className="sidebar left-sidebar">
         <div className="sidebar-header">
           <h2>Media Library</h2>
@@ -172,7 +196,6 @@ export function VideoEditor() {
         </div>
       </div>
 
-      {/* Middle Section - Editor */}
       <div className="editor-main">
         <div className="editor-header">
           <h1>Something Cooking...</h1>
@@ -182,7 +205,6 @@ export function VideoEditor() {
         </div>
 
         <div className="editor-content">
-          {/* Upload Section */}
           <div className="upload-section">
             <input
               ref={fileInputRef}
@@ -199,7 +221,6 @@ export function VideoEditor() {
             </label>
           </div>
 
-          {/* Media Preview */}
           {activeMedia ? (
             <div className="media-preview">
               {activeMedia.type === "video" ? (
@@ -219,7 +240,6 @@ export function VideoEditor() {
             </div>
           )}
 
-          {/* Prompt Input */}
           <div className="prompt-section" style={{ position: "relative" }}>
             <div className="form-group">
               <label htmlFor="prompt">Editing Prompt</label>
@@ -231,7 +251,6 @@ export function VideoEditor() {
                 onKeyDown={handlePromptKeyDown}
                 disabled={!activeMedia || isProcessing}
               />
-              {/* Mention dropdown */}
               {isMentioning && mentionSuggestions.length > 0 && (
                 <div className="mention-dropdown">
                   {mentionSuggestions.map((media) => (
@@ -263,7 +282,6 @@ export function VideoEditor() {
         </div>
       </div>
 
-      {/* Right Sidebar - Edited Versions */}
       <div className="sidebar right-sidebar">
         <div className="sidebar-header">
           <h2>Edit History</h2>
