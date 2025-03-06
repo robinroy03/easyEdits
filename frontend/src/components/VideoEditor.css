@@ -159,8 +159,8 @@ p {
 }
 
 .media-icon {
-  width: 3rem;
-  height: 3rem;
+  width: 2rem;
+  height: 2rem;
   background-color: rgba(0, 0, 0, 0.05);
   border-radius: var(--border-radius);
   display: flex;
@@ -168,6 +168,7 @@ p {
   justify-content: center;
   margin-right: 0.75rem;
   color: var(--color-primary);
+  
 }
 
 .media-details {
@@ -513,6 +514,7 @@ textarea:disabled {
   color: var(--color-muted);
   cursor: pointer;
   transition: color 0.2s ease;
+  margin: 0.5rem;
 }
 
 .delete-button:hover {
