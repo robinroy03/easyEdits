@@ -1,6 +1,5 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from google import genai
 from google.genai import types
 import shutil
@@ -10,51 +9,74 @@ from pydantic import BaseModel
 from typing import Tuple
 import subprocess
 
-
 app = FastAPI()
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-
-# CORS settings to allow frontend to communicate with backend
+# CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Change if frontend is hosted elsewhere
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = r"C:\Users\Robin Roy\Desktop\idkhack\files\upload"  # ROBIN
-# UPLOAD_DIR =          # shreesh
-# UPLOAD_DIR = r"D:\SWAGAT\idkhack\files\upload"         # swagat
-# EDIT_DIR = r"D:\SWAGAT\idkhack\files\edit"             # swagat
+UPLOAD_DIR = r"C:\Users\HP\Desktop\Hacknight\idkhack\files\upload"
+EDIT_DIR = r"C:\Users\HP\Desktop\Hacknight\idkhack\files\edit"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(EDIT_DIR, exist_ok=True)
 
-# Mount the files directory to serve static files
-app.mount("/files", StaticFiles(directory="../files"), name="files")
-
-# os.makedirs(UPLOAD_DIR, exist_ok=True)
 def ffmpeg_runner(ffmpeg_code: str):
-    """
-    Runs an FFmpeg command and prints output in real-time.
-    """
     print(ffmpeg_code)
     try:
         process = subprocess.run(
             ffmpeg_code, 
             shell=True, 
             check=True, 
-            stdout=subprocess.PIPE,  # Capture standard output
-            stderr=subprocess.STDOUT,  # Capture errors in the same stream
-            text=True  # Ensure output is treated as text (not bytes)
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, 
+            text=True
         )
-        
-        print(process.stdout)  # Print FFmpeg output
+        print(process.stdout)
         return True
     except subprocess.CalledProcessError as e:
         print(f"FFmpeg failed with error:\n{e.output}")
         return False
 
+def scene_detect_runner(scene_detect_code: str):
+    print(scene_detect_code)
+    try:
+        process = subprocess.run(
+            scene_detect_code, 
+            shell=True, 
+            check=True, 
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, 
+            text=True
+        )
+        print(process.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Scene detection failed with error:\n{e.output}")
+        return False
+
+def whisper_runner(whisper_code: str):
+    print(whisper_code)
+    try:
+        process = subprocess.run(
+            whisper_code, 
+            shell=True, 
+            check=True, 
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, 
+            text=True
+        )
+        print(process.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Whisper failed with error:\n{e.output}")
+        return False
 
 @app.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
@@ -85,46 +107,33 @@ async def upload_video(file: UploadFile = File(...)):
     os.remove(f"../files/upload/{file.filename}")
     os.rename(f"../files/upload/normalized_{file.filename}", f"../files/upload/{file.filename}")
 
+    
     return {"filename": file.filename, "message": "File uploaded successfully"}
-
 
 class Query(BaseModel):
     prompt: str
-    video_version: str  # this is the file name in /edit
+    video_version: str
 
 @app.post("/query")
 async def user_query(query: Query) -> Tuple[bool, int]:
-    """
-    work on the mentioned video version using the given prompt.
-
-    example: trim this video from 2nd second to the 7th second.
-
-    It'll then use this prompt on the specified video with the name "video_version.mp4".
-
-    Returns the new video version number as a string
-    """
-
-    edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
-    # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SHREESH
-    # edit_dir = r"D:\SWAGAT\idkhack\files\edit"           # SWAGAT
-
-    num_files = len([name for name in os.listdir(edit_dir) if os.path.isfile(os.path.join(edit_dir, name))])
-    print(num_files)
-
+    num_files = len([name for name in os.listdir(EDIT_DIR) if os.path.isfile(os.path.join(EDIT_DIR, name))])
+    
     SYSTEM_INSTRUCTION = f"""
-Write ffmpeg code for the queries given. The files are inside `../files/upload`. Save the file inside `../files/edit` as {num_files+1}.mp4.
+Write command-line code based on user queries. The files are inside ../files/upload. 
+If the user asks for scene detection, use the command:
+    scenedetect -i ../files/upload/{query.video_version} detect-content split-video -o ../files/edit/{num_files+1}
+If the user asks for subtitles, use Whisper with the command:
+    whisper ../files/upload/{query.video_version} --language English --output_format srt --output_dir ../files/edit
+Otherwise, use ffmpeg. Save output videos in ../files/edit as {num_files+1}.mp4.
 
-example code: ffmpeg -i input1.mp4 -i input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
-
-ALWAYS CALL THE FUNCTION FFMPEG_RUNNER.
+ALWAYS CALL THE APPROPRIATE FUNCTION: ffmpeg_runner for FFmpeg, scene_detect_runner for scene detection, or whisper_runner for Whisper.
 """
-# For some queries, you'll need to work on the latest edit, so you've to work on the current file: ../files/edit/{query.video_version}. Save the new file as {num_files+1}
 
     chat = client.aio.chats.create(
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
-            tools=[ffmpeg_runner]
+            tools=[ffmpeg_runner, scene_detect_runner, whisper_runner]
         ),
     )
 
@@ -139,4 +148,3 @@ ALWAYS CALL THE FUNCTION FFMPEG_RUNNER.
     except Exception as e:
         print(e)
         return False, -1
-
