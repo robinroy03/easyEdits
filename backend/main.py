@@ -25,7 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = r"C:\Users\Robin Roy\Desktop\idkhack\files\upload"  # ROBIN
+FILES_DIR = r"..\files"  # ROBIN
 # UPLOAD_DIR =          # shreesh
 # UPLOAD_DIR = r"D:\SWAGAT\idkhack\files\upload"         # swagat
 # EDIT_DIR = r"D:\SWAGAT\idkhack\files\edit"             # swagat
@@ -61,20 +61,20 @@ async def upload_video(file: UploadFile = File(...)):
     print(file)
     if not file.filename:
         raise ValueError("No filename provided")
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    file_path = os.path.join(FILES_DIR, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
     if file.filename.endswith(".mp4"):
         try:
-            subprocess.run(f'ffmpeg -i "../files/upload/{file.filename}" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:-1:-1,setsar=1" -r 30 -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -ar 44100 -movflags +faststart "../files/upload/normalized_{file.filename}"')
+            subprocess.run(f'ffmpeg -i "../files/{file.filename}" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:-1:-1,setsar=1" -r 30 -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -ar 44100 -movflags +faststart "../files/normalized_{file.filename}"')
         except subprocess.CalledProcessError as e:
             print(e)
             raise ValueError("MP4 Normalizing failed")
     elif file.filename.endswith(".mp3"):
         try:
             subprocess.run(
-                f'ffmpeg -i "../files/upload/{file.filename}" -af "loudnorm=I=-16:TP=-1.5:LRA=11" -b:a 192k -ar 44100 "../files/upload/normalized_{file.filename}"',
+                f'ffmpeg -i "../files/{file.filename}" -af "loudnorm=I=-16:TP=-1.5:LRA=11" -b:a 192k -ar 44100 "../files/normalized_{file.filename}"',
                 shell=True,
                 check=True
             )
@@ -82,8 +82,8 @@ async def upload_video(file: UploadFile = File(...)):
             print(e)
             raise ValueError("MP3 normalizing failed")
 
-    os.remove(f"../files/upload/{file.filename}")
-    os.rename(f"../files/upload/normalized_{file.filename}", f"../files/upload/{file.filename}")
+    os.remove(f"../files/{file.filename}")
+    os.rename(f"../files/normalized_{file.filename}", f"../files/{file.filename}")
 
     return {"filename": file.filename, "message": "File uploaded successfully"}
 
@@ -104,19 +104,22 @@ async def user_query(query: Query) -> Tuple[bool, int]:
     Returns the new video version number as a string
     """
 
-    edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
+    # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SHREESH
     # edit_dir = r"D:\SWAGAT\idkhack\files\edit"           # SWAGAT
 
-    num_files = len([name for name in os.listdir(edit_dir) if os.path.isfile(os.path.join(edit_dir, name))])
+    num_files = 0
+    for name in os.listdir(FILES_DIR):
+        if os.path.isfile(os.path.join(FILES_DIR, name)) and name[:-4].isdigit():
+            num_files += 1
     print(num_files)
 
     SYSTEM_INSTRUCTION = f"""
-Write ffmpeg code for the queries given. The files are inside `../files/upload`. Save the file inside `../files/edit` as {num_files+1}.mp4.
+Write ffmpeg code for the queries given. The files are inside `../files`. Save the file inside `../files` as {num_files+1}.mp4.
 
-example code: ffmpeg -i input1.mp4 -i input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
+example code: ffmpeg -i ../files/input1.mp4 -i ../files/input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
 
-ALWAYS CALL THE FUNCTION FFMPEG_RUNNER.
+ALWAYS CALL THE FUNCTION FFMPEG_RUNNER. MENTION THE PATH ALWAYS ../files/
 """
 # For some queries, you'll need to work on the latest edit, so you've to work on the current file: ../files/edit/{query.video_version}. Save the new file as {num_files+1}
 

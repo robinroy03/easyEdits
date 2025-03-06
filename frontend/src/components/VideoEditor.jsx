@@ -110,7 +110,7 @@ export function VideoEditor() {
       if (response.status === 200 && response.data[0]) {
         // Create a new URL for the edited video
         const newVersionNumber = response.data[1]
-        const editedVideoUrl = `http://127.0.0.1:8000/files/edit/${newVersionNumber}.mp4`
+        const editedVideoUrl = `http://127.0.0.1:8000/files/${newVersionNumber}.mp4`
 
         // Create a new version object
         const newVersion = {
