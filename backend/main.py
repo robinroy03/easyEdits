@@ -148,7 +148,8 @@ async def user_query(query: Query) -> Tuple[bool, int]:
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT.format(num_files+1, num_files+1, num_files+1, query.video_version),
-            tools=[ffmpeg_runner, scene_detect_runner, whisper_runner]
+            tools=[ffmpeg_runner, scene_detect_runner, whisper_runner],
+            temperature=0,
         ),
     )
 
