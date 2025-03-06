@@ -214,16 +214,20 @@ p {
 
 .editor-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* Space between to push toggle button to the right */
   align-items: center;
   padding: 1rem;
   border-bottom: 1px solid var(--color-border);
 }
 
 .editor-header h1 {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.5rem; /* Increase the size of h1 text */
+  font-weight: 1000; /* Make the text bold */
   margin: 0;
+}
+
+.toggle-mode-button {
+  margin-left: auto; /* Push the button to the right */
 }
 
 .editor-content {
@@ -370,12 +374,20 @@ textarea:disabled {
 }
 
 .button.primary {
+  font-family: "Raleway", sans-serif;
   background-color: var(--color-primary);
   color: #fff;
+  font-weight: 600;
 }
 
 .button.primary:hover:not(:disabled) {
   background-color: var(--color-primary-light);
+}
+
+.dark-mode .button.primary {
+  background-color: var(--color-primary);
+  color: #000000;
+  font-weight: 600;
 }
 
 .button.outline {
@@ -493,3 +505,14 @@ textarea:disabled {
   background-color: var(--color-accent);
 }
 
+.delete-button {
+  background: none;
+  border: none;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.delete-button:hover {
+  color: var(--color-error);
+}
