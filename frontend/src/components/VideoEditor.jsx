@@ -3,6 +3,7 @@ import { Upload, Wand2, Play, Volume2, RotateCcw, Sun, Moon } from "lucide-react
 import { FaTrash } from "react-icons/fa"
 import "./VideoEditor.css"
 import axios from "axios"
+import logo from "/ezlogo_crop.svg"
 
 export function VideoEditor() {
   const [mediaFiles, setMediaFiles] = useState([])
@@ -270,7 +271,9 @@ export function VideoEditor() {
 
       <div className="editor-main">
         <div className="editor-header">
-          <h1>easyEdits</h1>
+          <h1>
+            <img src={logo} alt="Logo" className="logo" /> <span>easyEdits</span>
+          </h1>
           <button className="button outline" onClick={toggleDarkMode}>
             {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
           </button>
