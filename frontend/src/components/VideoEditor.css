@@ -525,3 +525,9 @@ textarea:disabled {
   height: 40px; /* Adjust the height as needed */
   margin-right: 10px; /* Space between the logo and the text */
 }
+
+.react-player {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
