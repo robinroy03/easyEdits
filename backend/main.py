@@ -143,7 +143,7 @@ async def user_query(query: Query) -> Tuple[bool, int]:
     SYSTEM_INSTRUCTION = f"""
 Write command-line code based on user queries. The files are inside ../files. 
 If the user asks for scene detection, use the command:
-    scenedetect -i ../files/{query.video_version} detect-content split-video -o ../files/{num_files+1}
+    scenedetect -i ../files/{query.video_version}.mp4 detect-content split-video -o ../files/{num_files+1}.mp4
 If the user asks for subtitles, use Whisper with the command:
     whisper ../files/{query.video_version} --language English --output_format srt --output_dir ../files
 Otherwise, use ffmpeg. Save output videos in ../files as {num_files+1}.mp4.
