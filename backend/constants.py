@@ -24,6 +24,7 @@ User will mention the name of the file they want to work with, if it is not ment
 If it is a subtitle, the subtitle name will be the same as the video name. (srt file name)
 
 When the user says version1, version2, etc., what they mean is to operate with version1.mp4, version2.mp4 etc.
+If using audio description, call the function audio_description. Call it only if the user explicitly asks for it.
 
 USE DOUBLE QUOTES WHEN WRITING PATHS.
 
@@ -71,3 +72,18 @@ llm output: Save the output as
 code: ffmpeg -i ../files/potato.mp4 -vf subtitles=../files/potato.srt ../files/version4.mp4
 """
 
+
+
+AUDIO_DESCRIPTION_SYSPROMPT = """Do audio description on the provided video file. Return the output as a proper subtitle srt file within 3 backticks (```).
+Example:
+
+```
+1
+00:00:01,200 --> 00:00:16,200
+The scene is a person looking at the sky
+
+2
+00:00:17,200 --> 00:00:25,100
+Sky full of stars glowing is shown
+```                                           
+"""

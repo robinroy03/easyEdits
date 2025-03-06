@@ -9,7 +9,12 @@ import os
 from pydantic import BaseModel
 from typing import Tuple
 import subprocess
-from constants import SYSTEM_PROMPT
+from constants import SYSTEM_PROMPT, AUDIO_DESCRIPTION_SYSPROMPT
+import time
+import asyncio
+import edge_tts
+import re
+
 
 app = FastAPI()
 load_dotenv()
@@ -31,6 +36,57 @@ FILES_DIR = r"..\files"  # ROBIN
 
 # Mount the files directory to serve static files
 app.mount("/files", StaticFiles(directory="../files"), name="files")
+
+
+def audio_description(file: str, output_file: str):
+    """
+    file: Name of the file to be worked on (example: video.mp4)
+    output_file: Name of the output file (example: audio.mp3)
+    """
+    print(file, output_file)
+    file_ = client.files.upload(file=f"../files/{file}")
+    while file_.state.name == "PROCESSING":
+        print("Waiting for the video to be processed")
+        time.sleep(10)
+        file_ = client.files.get(name=file_.name)
+
+    if file_.state.name == "FAILED":
+        raise ValueError(file_.state.name)
+    print(f"video processing complete: {file_.uri}")
+
+    chat = client.chats.create(
+        model="gemini-2.0-flash",
+        config=types.GenerateContentConfig(system_instruction=AUDIO_DESCRIPTION_SYSPROMPT)
+    )
+
+    response = chat.send_message(message=types.Content(
+        role="user",
+        parts=[
+            types.Part.from_uri(
+                file_uri=file_.uri,
+                mime_type=file_.mime_type,
+            ),
+            types.Part.from_text(text="Do audio description on this. remember to return with proper timestamps formatted within 3 backticks (```)"),
+        ],
+    ))
+
+    print("audio description srt generated")
+    srt = response.text.split("```")[1]
+    cleaned_text = re.sub(r"\d+\n\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}\n", "", srt)
+    print(cleaned_text)
+
+    communicate = edge_tts.Communicate(cleaned_text.strip(), "en-US-AriaNeural")
+    print(communicate)
+
+    # Run inside existing event loop safely
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        asyncio.ensure_future(communicate.save(f"../files/{output_file}"))
+    else:
+        asyncio.run(communicate.save(f"../files/{output_file}"))
+
+    print(f"Audio saved to {output_file}")
+
 
 # os.makedirs(UPLOAD_DIR, exist_ok=True)
 def ffmpeg_runner(ffmpeg_code: str):
@@ -148,7 +204,7 @@ async def user_query(query: Query) -> Tuple[bool, int]:
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_PROMPT.format(num_files+1, num_files+1, num_files+1, query.video_version),
-            tools=[ffmpeg_runner, scene_detect_runner, whisper_runner],
+            tools=[ffmpeg_runner, scene_detect_runner, whisper_runner, audio_description],
             temperature=0,
         ),
     )
