@@ -1,6 +1,5 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from google import genai
 from google.genai import types
 import shutil
@@ -10,16 +9,14 @@ from pydantic import BaseModel
 from typing import Tuple
 import subprocess
 
-
 app = FastAPI()
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-
-# CORS settings to allow frontend to communicate with backend
+# CORS settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Change if frontend is hosted elsewhere
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,26 +32,55 @@ app.mount("/files", StaticFiles(directory="../files"), name="files")
 
 # os.makedirs(UPLOAD_DIR, exist_ok=True)
 def ffmpeg_runner(ffmpeg_code: str):
-    """
-    Runs an FFmpeg command and prints output in real-time.
-    """
     print(ffmpeg_code)
     try:
         process = subprocess.run(
             ffmpeg_code, 
             shell=True, 
             check=True, 
-            stdout=subprocess.PIPE,  # Capture standard output
-            stderr=subprocess.STDOUT,  # Capture errors in the same stream
-            text=True  # Ensure output is treated as text (not bytes)
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, 
+            text=True
         )
-        
-        print(process.stdout)  # Print FFmpeg output
+        print(process.stdout)
         return True
     except subprocess.CalledProcessError as e:
         print(f"FFmpeg failed with error:\n{e.output}")
         return False
 
+def scene_detect_runner(scene_detect_code: str):
+    print(scene_detect_code)
+    try:
+        process = subprocess.run(
+            scene_detect_code, 
+            shell=True, 
+            check=True, 
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, 
+            text=True
+        )
+        print(process.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Scene detection failed with error:\n{e.output}")
+        return False
+
+def whisper_runner(whisper_code: str):
+    print(whisper_code)
+    try:
+        process = subprocess.run(
+            whisper_code, 
+            shell=True, 
+            check=True, 
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, 
+            text=True
+        )
+        print(process.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Whisper failed with error:\n{e.output}")
+        return False
 
 @app.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
@@ -87,10 +113,9 @@ async def upload_video(file: UploadFile = File(...)):
 
     return {"filename": file.filename, "message": "File uploaded successfully"}
 
-
 class Query(BaseModel):
     prompt: str
-    video_version: str  # this is the file name in /edit
+    video_version: str
 
 @app.post("/query")
 async def user_query(query: Query) -> Tuple[bool, int]:
@@ -127,7 +152,7 @@ ALWAYS CALL THE FUNCTION FFMPEG_RUNNER. MENTION THE PATH ALWAYS ../files/
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM_INSTRUCTION,
-            tools=[ffmpeg_runner]
+            tools=[ffmpeg_runner, scene_detect_runner, whisper_runner]
         ),
     )
 
@@ -142,4 +167,3 @@ ALWAYS CALL THE FUNCTION FFMPEG_RUNNER. MENTION THE PATH ALWAYS ../files/
     except Exception as e:
         print(e)
         return False, -1
-
