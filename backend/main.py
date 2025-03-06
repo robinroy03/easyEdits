@@ -153,7 +153,7 @@ async def user_query(query: Query) -> Tuple[bool, int]:
         ),
     )
 
-    response = await chat.send_message(query.prompt)
+    response = await chat.send_message(query.prompt + f" - the new version is version{num_files+1}.mp4")
     print(response)
 
     try:

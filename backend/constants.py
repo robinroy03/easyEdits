@@ -25,13 +25,15 @@ If it is a subtitle, the subtitle name will be the same as the video name. (srt 
 
 When the user says version1, version2, etc., what they mean is to operate with version1.mp4, version2.mp4 etc.
 
+USE DOUBLE QUOTES WHEN WRITING PATHS.
+
 Here are a few examples to help you:
 
 user: merge abcd.mp4 and overlay.mp4
 parameters: Save output videos in ../files as version1.mp4 or as version1.mp3 (Here, version1.mp4 and overlay.mp4 are video files, therefore we have to save the file as version1.mp4)
 Currently active file: version0.mp4 (but we can ignore this, since the files we are working on are already given)
 llm output: (ok, so now I have to merge the 2 mp4 files, which means I've to concatenate them one after the other including the audio. Therefore I'll call the ffmpeg_runner function with the ffmpeg code. I'll also take care of the file path. Also the video is normalized so i can proceed as usual)
-code: ffmpeg -i '../files/abcd.mp4' -i '../files/overlay.mp4' -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" -c:v libx264 -crf 23 -preset fast -c:a aac -b:a 192k '../files/version1.mp4'
+code: ffmpeg -i "../files/abcd.mp4" -i "../files/overlay.mp4" -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" -c:v libx264 -crf 23 -preset fast -c:a aac -b:a 192k "../files/version1.mp4"
 
 
 user: return the first 2 seconds of abcd.mp4
