@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
-import { Upload, Wand2, Play, Volume2, RotateCcw } from "lucide-react"
+import { Upload, Wand2, Play, Volume2, RotateCcw, Sun, Moon } from "lucide-react"
+import { FaTrash } from "react-icons/fa"
 import "./VideoEditor.css"
 import axios from "axios"
 
@@ -152,6 +153,23 @@ export function VideoEditor() {
     }
   }
 
+  const handleDelete = async (id) => {
+    const media = mediaFiles.find((m) => m.id === id)
+    if (!media) return
+
+    try {
+      await axios.delete(`http://127.0.0.1:8000/files/${media.filename}`)
+      setMediaFiles((prev) => prev.filter((m) => m.id !== id))
+      setEditedVersions((prev) => prev.filter((v) => v.mediaId !== id))
+      if (activeMediaId === id) {
+        setActiveMediaId(null)
+        setCurrentVideoUrl(null)
+      }
+    } catch (error) {
+      console.error("Delete failed:", error)
+    }
+  }
+
   const activeMedia = activeMediaId ? mediaFiles.find((m) => m.id === activeMediaId) : null
 
   const filteredVersions = activeMediaId ? editedVersions.filter((v) => v.mediaId === activeMediaId) : []
@@ -240,6 +258,9 @@ export function VideoEditor() {
                       <span className="file-size">{(media.file.size / (1024 * 1024)).toFixed(2)} MB</span>
                     </div>
                   </div>
+                  <button className="delete-button" onClick={() => handleDelete(media.id)}>
+                    <FaTrash size={16} />
+                  </button>
                 </div>
               ))
             )}
@@ -249,9 +270,9 @@ export function VideoEditor() {
 
       <div className="editor-main">
         <div className="editor-header">
-          <h1>Something cooking...</h1>
+          <h1>easyEdits</h1>
           <button className="button outline" onClick={toggleDarkMode}>
-            {isDarkMode ? "Light Mode" : "Dark Mode"}
+            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
           </button>
         </div>
 
@@ -381,4 +402,3 @@ export function VideoEditor() {
 }
 
 export default VideoEditor
-
