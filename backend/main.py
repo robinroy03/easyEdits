@@ -151,6 +151,8 @@ Otherwise, use ffmpeg. Save output videos in ../files as {num_files+1}.mp4.
 example code: ffmpeg -i ../files/input1.mp4 -i ../files/input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
 example code for adding subtitles srt file : ffmpeg -i ../files/WIN_20250306_11_55_38_Pro.mp4 -vf subtitles=../files/WIN_20250306_11_55_38_Pro.srt ../files/1.mp4 
 
+and when the user aske to "add subtitles to video.mp4" -> ffmpeg -i ../files/video.mp4 -vf subtitles=../files/video.srt ../files/video_subtitle.mp4, PLEASE REMEMBER TO DO THIS WHEN THE USER ASKS TO ADD SUBTITLES
+
 When user says version 1, version 2 etc, they are mentioning 1.mp4, 2.mp4 respectively.
 
 ALWAYS CALL THE APPROPRIATE FUNCTION: ffmpeg_runner for FFmpeg, scene_detect_runner for scene detection, or whisper_runner for Whisper. MENTION THE PATH ALWAYS ../files
