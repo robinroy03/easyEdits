@@ -224,6 +224,8 @@ p {
   font-size: 2rem; /* Increase the size of h1 text */
   font-weight: 1000; /* Make the text bold */
   margin: 0;
+  display: flex;
+  align-items: center;
 }
 
 .toggle-mode-button {
@@ -520,5 +522,4 @@ textarea:disabled {
 .logo {
   height: 40px; /* Adjust the height as needed */
   margin-right: 10px; /* Space between the logo and the text */
-  vertical-align: middle; /* Align the logo vertically with the text */
 }
