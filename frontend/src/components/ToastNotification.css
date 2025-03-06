@@ -1,0 +1,78 @@
+/* Toast notification */
+.toast-notification {
+  position: fixed;
+  top: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gradient-primary);
+  color: white;
+  padding: 12px 20px;
+  border-radius: var(--border-radius);
+  z-index: 1000;
+  box-shadow: var(--shadow-lg);
+  max-width: 300px;
+  text-align: center;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Quick actions */
+.quick-actions {
+  margin-bottom: 1.5rem;
+}
+
+.quick-actions h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.quick-action-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-action-button:hover {
+  background-color: var(--color-card-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.quick-action-button svg {
+  color: var(--color-primary);
+  width: 20px; /* Increase the size */
+  height: 20px; /* Increase the size */
+}
+
+.quick-action-button span {
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  font-family: "Raleway", sans-serif;
+  color: var(--color-foreground);
+}
+
+.prompt-hint {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  margin-top: 0.25rem;
+}
