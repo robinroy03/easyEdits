@@ -134,6 +134,7 @@ async def user_query(query: Query) -> Tuple[bool, int]:
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SHREESH
     # edit_dir = r"D:\SWAGAT\idkhack\files\edit"           # SWAGAT
+    query.prompt = query.prompt.replace("@", "")
     print(query)
     num_files = 0
     for name in os.listdir(FILES_DIR):
