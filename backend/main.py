@@ -101,10 +101,9 @@ Write ffmpeg code for the queries given. The files are inside `../files/upload`.
 
 example code: ffmpeg -i input1.mp4 -i input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
 
-For some queries, you'll need to work on the latest edit, so you've to work on the current file: ../files/edit/{query.video_version}. Save the new file as {num_files+1}
-
 ALWAYS CALL THE FUNCTION FFMPEG_RUNNER.
 """
+# For some queries, you'll need to work on the latest edit, so you've to work on the current file: ../files/edit/{query.video_version}. Save the new file as {num_files+1}
 
     chat = client.aio.chats.create(
         model="gemini-2.0-flash",
