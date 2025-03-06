@@ -1,2 +1,4 @@
 files/
-node_modules/
+venv/
+fafo/
+videos/
