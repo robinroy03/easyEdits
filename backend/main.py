@@ -149,6 +149,7 @@ If the user asks for subtitles, use Whisper with the command:
 Otherwise, use ffmpeg. Save output videos in ../files as {num_files+1}.mp4.
 
 example code: ffmpeg -i ../files/input1.mp4 -i ../files/input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
+example code for adding subtitles srt file : ffmpeg -i ../files/WIN_20250306_11_55_38_Pro.mp4 -vf subtitles=../files/WIN_20250306_11_55_38_Pro.srt ../files/1.mp4 
 
 ALWAYS CALL THE APPROPRIATE FUNCTION: ffmpeg_runner for FFmpeg, scene_detect_runner for scene detection, or whisper_runner for Whisper. MENTION THE PATH ALWAYS ../files
 """
