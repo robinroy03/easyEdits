@@ -9,6 +9,7 @@ import os
 from pydantic import BaseModel
 from typing import Tuple
 import subprocess
+from constants import SYSTEM_PROMPT
 
 app = FastAPI()
 load_dotenv()
@@ -140,27 +141,12 @@ async def user_query(query: Query) -> Tuple[bool, int]:
             num_files += 1
     print(num_files)
 
-    SYSTEM_INSTRUCTION = f"""
-Write command-line code based on user queries. The files are inside ../files. 
-If the user asks for scene detection, use the command:
-    scenedetect -i ../files/{query.video_version}.mp4 detect-content split-video -o ../files/version{num_files+1}.mp4
-If the user asks for subtitles, use Whisper with the command:
-    whisper ../files/{query.video_version} --language English --output_format srt --output_dir ../files
-Otherwise, use ffmpeg. Save output videos in ../files as version{num_files+1}.mp4.
-
-example code: ffmpeg -i ../files/input1.mp4 -i ../files/input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
-
-When user says version 1, version 2 etc, they are mentioning version1.mp4, version2.mp4 respectively.
-
-ALWAYS CALL THE APPROPRIATE FUNCTION: ffmpeg_runner for FFmpeg, scene_detect_runner for scene detection, or whisper_runner for Whisper. MENTION THE PATH ALWAYS ../files
-"""
-
-# For some queries, you'll need to work on the latest edit, so you've to work on the current file: ../files/edit/{query.video_version}. Save the new file as version{num_files+1}
+# For some queries, you'll need to work on the latest edit, so you've to work on the current file: ../files/edit/{query.video_version}. Save the new file as {num_files+1}
 
     chat = client.aio.chats.create(
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_INSTRUCTION,
+            system_instruction=SYSTEM_PROMPT.format(num_files+1, num_files+1, num_files+1, query.video_version),
             tools=[ffmpeg_runner, scene_detect_runner, whisper_runner]
         ),
     )
