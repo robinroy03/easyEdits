@@ -3,7 +3,7 @@ import { Upload, Wand2, Play, Volume2, RotateCcw, Sun, Moon } from "lucide-react
 import { FaTrash } from "react-icons/fa"
 import "./VideoEditor.css"
 import axios from "axios"
-import logo from "../../public/ezlogo_crop.svg"
+import logo from "/ezlogo_crop.svg"
 
 export function VideoEditor() {
   const [mediaFiles, setMediaFiles] = useState([])
