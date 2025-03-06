@@ -133,7 +133,7 @@ async def user_query(query: Query) -> Tuple[bool, int]:
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SHREESH
     # edit_dir = r"D:\SWAGAT\idkhack\files\edit"           # SWAGAT
-
+    print(query)
     num_files = 0
     for name in os.listdir(FILES_DIR):
         if os.path.isfile(os.path.join(FILES_DIR, name)) and name[:-4].isdigit():
@@ -150,8 +150,11 @@ Otherwise, use ffmpeg. Save output videos in ../files as {num_files+1}.mp4.
 
 example code: ffmpeg -i ../files/input1.mp4 -i ../files/input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
 
+When user says version 1, version 2 etc, they are mentioning 1.mp4, 2.mp4 respectively.
+
 ALWAYS CALL THE APPROPRIATE FUNCTION: ffmpeg_runner for FFmpeg, scene_detect_runner for scene detection, or whisper_runner for Whisper. MENTION THE PATH ALWAYS ../files
 """
+
 # For some queries, you'll need to work on the latest edit, so you've to work on the current file: ../files/edit/{query.video_version}. Save the new file as {num_files+1}
 
     chat = client.aio.chats.create(
