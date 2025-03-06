@@ -9,6 +9,7 @@ import os
 from pydantic import BaseModel
 from typing import Tuple
 import subprocess
+from constants import SYSTEM_PROMPT
 
 app = FastAPI()
 load_dotenv()
@@ -133,10 +134,11 @@ async def user_query(query: Query) -> Tuple[bool, int]:
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SHREESH
     # edit_dir = r"D:\SWAGAT\idkhack\files\edit"           # SWAGAT
+    query.prompt = query.prompt.replace("@", "")
     print(query)
     num_files = 0
     for name in os.listdir(FILES_DIR):
-        if os.path.isfile(os.path.join(FILES_DIR, name)) and name[:-4].isdigit():
+        if os.path.isfile(os.path.join(FILES_DIR, name)) and name.startswith("version") and name[7:-4].isdigit():
             num_files += 1
     print(num_files)
 
@@ -149,9 +151,6 @@ If the user asks for subtitles, use Whisper with the command:
 Otherwise, use ffmpeg. Save output videos in ../files as {num_files+1}.mp4.
 
 example code: ffmpeg -i ../files/input1.mp4 -i ../files/input2.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
-example code for adding subtitles srt file : ffmpeg -i ../files/WIN_20250306_11_55_38_Pro.mp4 -vf subtitles=../files/WIN_20250306_11_55_38_Pro.srt ../files/1.mp4 
-
-and when the user aske to "add subtitles to video.mp4" -> ffmpeg -i ../files/video.mp4 -vf subtitles=../files/video.srt ../files/video_subtitle.mp4, PLEASE REMEMBER TO DO THIS WHEN THE USER ASKS TO ADD SUBTITLES
 
 When user says version 1, version 2 etc, they are mentioning 1.mp4, 2.mp4 respectively.
 
@@ -163,7 +162,7 @@ ALWAYS CALL THE APPROPRIATE FUNCTION: ffmpeg_runner for FFmpeg, scene_detect_run
     chat = client.aio.chats.create(
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_INSTRUCTION,
+            system_instruction=SYSTEM_PROMPT.format(num_files+1, num_files+1, num_files+1, query.video_version),
             tools=[ffmpeg_runner, scene_detect_runner, whisper_runner]
         ),
     )

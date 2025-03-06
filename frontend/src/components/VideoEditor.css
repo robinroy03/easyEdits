@@ -327,8 +327,8 @@ p {
 }
 
 .form-group label {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 textarea {
@@ -363,7 +363,7 @@ textarea:disabled {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   border-radius: var(--border-radius);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
@@ -524,4 +524,10 @@ textarea:disabled {
 .logo {
   height: 40px; /* Adjust the height as needed */
   margin-right: 10px; /* Space between the logo and the text */
+}
+
+.react-player {
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
 }
