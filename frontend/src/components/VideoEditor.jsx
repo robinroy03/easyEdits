@@ -93,27 +93,27 @@ export function VideoEditor() {
 
   const handleEdit = async () => {
     if (!prompt.trim() || !activeMediaId) return
-
+  
     setIsProcessing(true)
-
+  
     const activeMedia = mediaFiles.find((m) => m.id === activeMediaId)
     if (!activeMedia) return
-
+  
     // Determine which version to edit
     const versions = editedVersions.filter((v) => v.mediaId === activeMediaId)
     const currentVersion = versions.length > 0 ? versions[versions.length - 1].versionNumber : activeMedia.filename
-
+  
     try {
       const response = await axios.post("http://127.0.0.1:8000/query", {
         prompt,
         video_version: currentVersion,
       })
-
+  
       if (response.status === 200 && response.data[0]) {
         // Create a new URL for the edited video
         const newVersionNumber = response.data[1]
-        const editedVideoUrl = `http://127.0.0.1:8000/files/${newVersionNumber}.mp4`
-
+        const editedVideoUrl = `http://127.0.0.1:8000/files/version${newVersionNumber}.mp4`
+  
         // Create a new version object
         const newVersion = {
           id: crypto.randomUUID(),
@@ -121,12 +121,12 @@ export function VideoEditor() {
           timestamp: new Date(),
           mediaId: activeMediaId,
           url: editedVideoUrl,
-          versionNumber: newVersionNumber.toString(),
+          versionNumber: `version${newVersionNumber}`,
         }
-
+  
         setEditedVersions((prev) => [...prev, newVersion])
         setPrompt("")
-
+  
         // Force video element to reload with new source
         if (videoRef.current) {
           videoRef.current.load()
