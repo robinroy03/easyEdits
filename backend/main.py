@@ -25,10 +25,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# UPLOAD_DIR = r"C:\Users\Robin Roy\Desktop\idkhack\files\upload"  # ROBIN
+UPLOAD_DIR = r"C:\Users\Robin Roy\Desktop\idkhack\files\upload"  # ROBIN
 # UPLOAD_DIR =          # shreesh
-UPLOAD_DIR = r"D:\SWAGAT\idkhack\files\upload"         # swagat
-EDIT_DIR = r"D:\SWAGAT\idkhack\files\edit"             # swagat
+# UPLOAD_DIR = r"D:\SWAGAT\idkhack\files\upload"         # swagat
+# EDIT_DIR = r"D:\SWAGAT\idkhack\files\edit"             # swagat
 
 # Mount the files directory to serve static files
 app.mount("/files", StaticFiles(directory="../files"), name="files")
@@ -65,11 +65,22 @@ async def upload_video(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    try:
-        subprocess.run(f'ffmpeg -i "../files/upload/{file.filename}" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:-1:-1,setsar=1" -r 30 -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -ar 44100 -movflags +faststart "../files/upload/normalized_{file.filename}"')
-    except subprocess.CalledProcessError as e:
-        print(e)
-        raise ValueError("Normalizing failed")
+    if file.filename.endswith(".mp4"):
+        try:
+            subprocess.run(f'ffmpeg -i "../files/upload/{file.filename}" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:-1:-1,setsar=1" -r 30 -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -ar 44100 -movflags +faststart "../files/upload/normalized_{file.filename}"')
+        except subprocess.CalledProcessError as e:
+            print(e)
+            raise ValueError("MP4 Normalizing failed")
+    elif file.filename.endswith(".mp3"):
+        try:
+            subprocess.run(
+                f'ffmpeg -i "../files/upload/{file.filename}" -af "loudnorm=I=-16:TP=-1.5:LRA=11" -b:a 192k -ar 44100 "../files/upload/normalized_{file.filename}"',
+                shell=True,
+                check=True
+            )
+        except subprocess.CalledProcessError as e:
+            print(e)
+            raise ValueError("MP3 normalizing failed")
 
     os.remove(f"../files/upload/{file.filename}")
     os.rename(f"../files/upload/normalized_{file.filename}", f"../files/upload/{file.filename}")
@@ -93,9 +104,9 @@ async def user_query(query: Query) -> Tuple[bool, int]:
     Returns the new video version number as a string
     """
 
-    # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
+    edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SHREESH
-    edit_dir = r"D:\SWAGAT\idkhack\files\edit"           # SWAGAT
+    # edit_dir = r"D:\SWAGAT\idkhack\files\edit"           # SWAGAT
 
     num_files = len([name for name in os.listdir(edit_dir) if os.path.isfile(os.path.join(edit_dir, name))])
     print(num_files)
