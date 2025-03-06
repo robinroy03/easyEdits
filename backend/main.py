@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from google import genai
 from google.genai import types
 import shutil
@@ -24,12 +25,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = r"C:\Users\Robin Roy\Desktop\idkhack\files\upload"  # ROBIN
+# UPLOAD_DIR = r"C:\Users\Robin Roy\Desktop\idkhack\files\upload"  # ROBIN
 # UPLOAD_DIR =          # shreesh
-# UPLOAD_DIR =          # swagat
+UPLOAD_DIR = r"D:\SWAGAT\idkhack\files\upload"         # swagat
+EDIT_DIR = r"D:\SWAGAT\idkhack\files\edit"             # swagat
+
+# Mount the files directory to serve static files
+app.mount("/files", StaticFiles(directory="../files"), name="files")
 
 # os.makedirs(UPLOAD_DIR, exist_ok=True)
-
 def ffmpeg_runner(ffmpeg_code: str):
     """
     Runs an FFmpeg command and prints output in real-time.
@@ -89,9 +93,9 @@ async def user_query(query: Query) -> Tuple[bool, int]:
     Returns the new video version number as a string
     """
 
-    edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
+    # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"
     # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SHREESH
-    # edit_dir = r"C:\Users\Robin Roy\Desktop\idkhack\files\edit"           # SWAGAT
+    edit_dir = r"D:\SWAGAT\idkhack\files\edit"           # SWAGAT
 
     num_files = len([name for name in os.listdir(edit_dir) if os.path.isfile(os.path.join(edit_dir, name))])
     print(num_files)
@@ -124,3 +128,4 @@ ALWAYS CALL THE FUNCTION FFMPEG_RUNNER.
     except Exception as e:
         print(e)
         return False, -1
+

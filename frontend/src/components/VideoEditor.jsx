@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Upload, Wand2, Play, Volume2, RotateCcw } from "lucide-react"
 import "./VideoEditor.css"
 import axios from "axios"
@@ -13,54 +13,81 @@ export function VideoEditor() {
   const [activeTab, setActiveTab] = useState("all")
   const [isMentioning, setIsMentioning] = useState(false)
   const [mentionQuery, setMentionQuery] = useState("")
+  const [currentVideoUrl, setCurrentVideoUrl] = useState(null)
 
   const fileInputRef = useRef(null)
+  const videoRef = useRef(null)
+
+  // Update current video URL when active media or edited versions change
+  useEffect(() => {
+    if (!activeMediaId) {
+      setCurrentVideoUrl(null)
+      return
+    }
+
+    // Find the active media
+    const activeMedia = mediaFiles.find((m) => m.id === activeMediaId)
+    if (!activeMedia) return
+
+    // Check if there are any edited versions for this media
+    const versions = editedVersions.filter((v) => v.mediaId === activeMediaId)
+
+    if (versions.length > 0) {
+      // Use the most recent edited version
+      const latestVersion = versions[versions.length - 1]
+      setCurrentVideoUrl(latestVersion.url)
+    } else {
+      // Use the original media
+      setCurrentVideoUrl(activeMedia.url)
+    }
+  }, [activeMediaId, editedVersions, mediaFiles])
 
   const handleUpload = async (event) => {
-    if (!event.target.files?.length) return;
-  
-    const files = Array.from(event.target.files);
-  
+    if (!event.target.files?.length) return
+
+    const files = Array.from(event.target.files)
+
     const uploadPromises = files.map(async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
-  
+      const formData = new FormData()
+      formData.append("file", file)
+
       try {
         const response = await axios.post("http://127.0.0.1:8000/upload", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        });
-  
+        })
+
         if (response.status === 200) {
-          const id = crypto.randomUUID();
-          const type = file.type.startsWith("video/") ? "video" : "audio";
-  
+          const id = crypto.randomUUID()
+          const type = file.type.startsWith("video/") ? "video" : "audio"
+
           return {
             id,
             file,
             url: URL.createObjectURL(file),
+            filename: response.data.filename,
             type,
-          };
+          }
         }
       } catch (error) {
-        console.error("Upload failed:", error);
-        return null;
+        console.error("Upload failed:", error)
+        return null
       }
-    });
-  
-    const uploadedMediaFiles = (await Promise.all(uploadPromises)).filter(Boolean);
-  
-    setMediaFiles((prev) => [...prev, ...uploadedMediaFiles]);
-  
+    })
+
+    const uploadedMediaFiles = (await Promise.all(uploadPromises)).filter(Boolean)
+
+    setMediaFiles((prev) => [...prev, ...uploadedMediaFiles])
+
     if (!activeMediaId && uploadedMediaFiles.length > 0) {
-      setActiveMediaId(uploadedMediaFiles[0].id);
+      setActiveMediaId(uploadedMediaFiles[0].id)
     }
-  
+
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = ""
     }
-  };
+  }
 
   const handleEdit = async () => {
     if (!prompt.trim() || !activeMediaId) return
@@ -70,23 +97,38 @@ export function VideoEditor() {
     const activeMedia = mediaFiles.find((m) => m.id === activeMediaId)
     if (!activeMedia) return
 
+    // Determine which version to edit
+    const versions = editedVersions.filter((v) => v.mediaId === activeMediaId)
+    const currentVersion = versions.length > 0 ? versions[versions.length - 1].versionNumber : activeMedia.filename
+
     try {
       const response = await axios.post("http://127.0.0.1:8000/query", {
         prompt,
-        video_version: activeMedia.file.name,
+        video_version: currentVersion,
       })
 
       if (response.status === 200 && response.data[0]) {
+        // Create a new URL for the edited video
+        const newVersionNumber = response.data[1]
+        const editedVideoUrl = `http://127.0.0.1:8000/files/edit/${newVersionNumber}.mp4`
+
+        // Create a new version object
         const newVersion = {
           id: crypto.randomUUID(),
           prompt,
           timestamp: new Date(),
           mediaId: activeMediaId,
-          url: `${activeMedia.url}?version=${response.data[1]}`, // Assuming the backend returns the new version number
+          url: editedVideoUrl,
+          versionNumber: newVersionNumber.toString(),
         }
 
         setEditedVersions((prev) => [...prev, newVersion])
         setPrompt("")
+
+        // Force video element to reload with new source
+        if (videoRef.current) {
+          videoRef.current.load()
+        }
       } else {
         console.error("Editing failed:", response.data)
       }
@@ -98,7 +140,16 @@ export function VideoEditor() {
   }
 
   const handleVersionSelect = (version) => {
+    // Set the active media ID
     setActiveMediaId(version.mediaId)
+
+    // Update the current video URL to show this specific version
+    setCurrentVideoUrl(version.url)
+
+    // Force video element to reload with new source
+    if (videoRef.current) {
+      videoRef.current.load()
+    }
   }
 
   const activeMedia = activeMediaId ? mediaFiles.find((m) => m.id === activeMediaId) : null
@@ -143,7 +194,7 @@ export function VideoEditor() {
   }
 
   const mentionSuggestions = mediaFiles.filter((media) =>
-    media.file.name.toLowerCase().includes(mentionQuery.toLowerCase())
+    media.file.name.toLowerCase().includes(mentionQuery.toLowerCase()),
   )
 
   return (
@@ -198,7 +249,7 @@ export function VideoEditor() {
 
       <div className="editor-main">
         <div className="editor-header">
-          <h1>Something Cooking...</h1>
+          <h1>Something cooking...</h1>
           <button className="button outline" onClick={toggleDarkMode}>
             {isDarkMode ? "Light Mode" : "Dark Mode"}
           </button>
@@ -224,11 +275,17 @@ export function VideoEditor() {
           {activeMedia ? (
             <div className="media-preview">
               {activeMedia.type === "video" ? (
-                <video src={activeMedia.url} controls className="video-player" />
+                <video
+                  ref={videoRef}
+                  src={currentVideoUrl || activeMedia.url}
+                  controls
+                  className="video-player"
+                  key={currentVideoUrl} // Force re-render when URL changes
+                />
               ) : (
                 <div className="audio-player">
                   <Volume2 size={48} />
-                  <audio src={activeMedia.url} controls />
+                  <audio src={currentVideoUrl || activeMedia.url} controls />
                 </div>
               )}
             </div>
@@ -324,3 +381,4 @@ export function VideoEditor() {
 }
 
 export default VideoEditor
+
