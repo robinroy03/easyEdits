@@ -270,7 +270,9 @@ p {
 .upload-section {
   margin-bottom: 1.5rem;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem; /* Add gap between buttons */
 }
 
 .hidden {
@@ -289,6 +291,22 @@ p {
 }
 
 .upload-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.export-button {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  width: 90%;
+}
+
+.export-button:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -653,4 +671,3 @@ textarea:disabled {
     height: 70vh;
   }
 }
-
