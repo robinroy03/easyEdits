@@ -1,10 +1,13 @@
 # easyEdits: your copilot for video editing
 
+> [!IMPORTANT]  
+> The application is under active development. Please join the [Discord server](https://discord.gg/GSknuxubZK) if you're going to run it.
+
 ![image](https://github.com/user-attachments/assets/18563506-65d6-4ea4-91df-2913dc9c2314)
 
 easyEdits helps you to avoid the clutter and complexity of a modern video editor. Just say what you want and it'll achieve the task for you ✨
 
-See the demo here: https://youtu.be/y_SJ58cl2fM?si=6BHqpREOMs1KNAhQ
+See the demo here: https://youtu.be/T5y9oxNX14Q?si=OIYCUJhH0hD3Mygn
 
 ## Key Features
 - ✨ **Prompt based edit workflow:** You can trim/merge/crop videos and so much more by just prompting.
@@ -80,4 +83,4 @@ Now the app will be functional on `http://localhost:5173/`. if it's not, check t
 
 #
 
-Developed with [Swagat Mitra](https://github.com/swagatmitra22) and [Shreesh R Nair](https://github.com/Shreesh-Nair) in 36 hours for a hackathon. We'll continue shipping more features and iterating 🚀 Send us your feedback on **X** [@_RobinRoy](https://x.com/_RobinRoy) or via **GitHub** as [Discussions](https://github.com/robinroy03/easyEdits/discussions)/[Issues](https://github.com/robinroy03/easyEdits/issues)/[Pull Requests](https://github.com/robinroy03/easyEdits/pulls).
+Developed with [Swagat Mitra](https://github.com/swagatmitra22) and [Shreesh R Nair](https://github.com/Shreesh-Nair) in 36 hours for a hackathon. We'll continue shipping more features and iterating 🚀 Send us your feedback on **X** [@_RobinRoy](https://x.com/_RobinRoy), [Discord](https://discord.gg/GSknuxubZK) or via **GitHub** as [Discussions](https://github.com/robinroy03/easyEdits/discussions)/[Issues](https://github.com/robinroy03/easyEdits/issues)/[Pull Requests](https://github.com/robinroy03/easyEdits/pulls).

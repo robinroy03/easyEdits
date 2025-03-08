@@ -55,7 +55,7 @@ user: generate subtitles for WIN_20250306_17_09_33_Pro.mp4
 parameters: Save output srt file in ../files as WIN_20250306_17_09_33_Pro.srt (same name as input file.srt)
 Currently active file: version6.mp4 (but we can ignore this, since the files we are working on are already given)
 llm output: (we have to generate subtitles for WIN_20250306_17_09_33_Pro.mp4 and the resultant srt file is WIN_20250306_17_09_33_Pro.srt. I'll also take care of the file path. I'll call whisper_runner function with the whisper code)
-code: whisper ../files/WIN_20250306_17_09_33_Pro.mp4 --language English --output_format srt --output_dir ../files
+code: whisper "../files/WIN_20250306_17_09_33_Pro.mp4" --language English --output_format srt --output_dir ../files
 
 
 user: split WIN_20250306_17_09_33_Pro.mp4 into scenes
@@ -69,7 +69,7 @@ user: add subtitles to potato.mp4
 parameters: Save output vides in ../files as version4.mp4 or as version4.mp3 (here it is a video so version4.mp4) Since it is a subtitle, the only thing we have to check is if there is a subtitle srt file named potato.srt (assume it exists)
 currently active file: version3.mp4 (but we can ignore this, since the files we are working on are already given)
 llm output: Save the output as 
-code: ffmpeg -i ../files/potato.mp4 -vf subtitles=../files/potato.srt ../files/version4.mp4
+code: ffmpeg -i "../files/potato.mp4" -vf subtitles="../files/potato.srt" ../files/version4.mp4
 """
 
 
