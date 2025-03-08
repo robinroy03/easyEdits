@@ -46,6 +46,13 @@ Windows: https://www.wikihow.com/Install-FFmpeg-on-Windows
 
 MacOS: https://phoenixnap.com/kb/ffmpeg-mac
 
+#### 5. **Setup the Environment Variables**
+Add a `.env` file inside `/backend` with the following content
+```
+GEMINI_API_KEY = your_gemini_api_key
+```
+Get Gemini API key from [Google AI Studio](http://aistudio.google.com/) for free.
+
 #### 🤩How to run the software
 You need to have 2 terminals running parallelly with the following commands, one is for frontend and the other for backend.
 
